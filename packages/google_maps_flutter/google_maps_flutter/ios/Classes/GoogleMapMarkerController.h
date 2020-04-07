@@ -29,6 +29,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property(atomic, readonly) NSString* markerId;
 - (instancetype)initMarkerWithPosition:(CLLocationCoordinate2D)position
                               markerId:(NSString*)markerId
+                                animation:(GMSMarkerAnimation)animation
                                mapView:(GMSMapView*)mapView;
 - (void)showInfoWindow;
 - (void)hideInfoWindow;

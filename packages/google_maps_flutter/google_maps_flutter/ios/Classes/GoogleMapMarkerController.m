@@ -15,6 +15,7 @@ static void InterpretInfoWindow(id<FLTGoogleMapMarkerOptionsSink> sink, NSDictio
 }
 - (instancetype)initMarkerWithPosition:(CLLocationCoordinate2D)position
                               markerId:(NSString*)markerId
+                             animation: (GMSMarkerAnimation)animation
                                mapView:(GMSMapView*)mapView {
   self = [super init];
   if (self) {
@@ -22,6 +23,7 @@ static void InterpretInfoWindow(id<FLTGoogleMapMarkerOptionsSink> sink, NSDictio
     _mapView = mapView;
     _markerId = markerId;
     _marker.userData = @[ _markerId ];
+    _marker.appearAnimation = animation;
     _consumeTapEvents = NO;
   }
   return self;
@@ -253,9 +255,11 @@ static UIImage* ExtractIcon(NSObject<FlutterPluginRegistrar>* registrar, NSArray
   for (NSDictionary* marker in markersToAdd) {
     CLLocationCoordinate2D position = [FLTMarkersController getPosition:marker];
     NSString* markerId = [FLTMarkersController getMarkerId:marker];
+    GMSMarkerAnimation animation = [FLTMarkersController getAnimation:marker];
     FLTGoogleMapMarkerController* controller =
         [[FLTGoogleMapMarkerController alloc] initMarkerWithPosition:position
                                                             markerId:markerId
+                                                           animation:animation
                                                              mapView:_mapView];
     InterpretMarkerOptions(marker, controller, _registrar);
     _markerIdToController[markerId] = controller;
@@ -350,5 +354,13 @@ static UIImage* ExtractIcon(NSObject<FlutterPluginRegistrar>* registrar, NSArray
 }
 + (NSString*)getMarkerId:(NSDictionary*)marker {
   return marker[@"markerId"];
+}
++ (GMSMarkerAnimation)getAnimation:(NSDictionary*)marker {
+    NSString* animation = marker[@"animation"];
+    if([animation isEqualToString:@"pop"]) {
+        return kGMSMarkerAnimationPop;
+    }
+    
+    return kGMSMarkerAnimationNone;
 }
 @end

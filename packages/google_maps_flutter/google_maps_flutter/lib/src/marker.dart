@@ -124,6 +124,14 @@ class MarkerId {
   }
 }
 
+/// Determines how a [Marker] should animate when it is added to the [GoogleMap].
+enum MarkerAnimation {
+  /// No animation
+  none,
+  /// Pop animation
+  pop
+}
+
 /// Marks a geographical location on the map.
 ///
 /// A marker icon is drawn oriented against the device's screen rather than
@@ -153,6 +161,7 @@ class Marker {
   const Marker({
     @required this.markerId,
     this.alpha = 1.0,
+    this.appearAnimation = MarkerAnimation.none,
     this.anchor = const Offset(0.5, 1.0),
     this.consumeTapEvents = false,
     this.draggable = false,
@@ -211,6 +220,9 @@ class Marker {
   /// True if the marker is visible.
   final bool visible;
 
+  /// The animation to use when the marker is added to the map.
+  final MarkerAnimation appearAnimation;
+
   /// The z-index of the marker, used to determine relative drawing order of
   /// map overlays.
   ///
@@ -228,6 +240,7 @@ class Marker {
   /// unless overwritten by the specified parameters.
   Marker copyWith({
     double alphaParam,
+    MarkerAnimation appearAnimationParam,
     Offset anchorParam,
     bool consumeTapEventsParam,
     bool draggableParam,
@@ -244,6 +257,7 @@ class Marker {
     return Marker(
       markerId: markerId,
       alpha: alphaParam ?? alpha,
+      appearAnimation: appearAnimationParam ?? appearAnimation,
       anchor: anchorParam ?? anchor,
       consumeTapEvents: consumeTapEventsParam ?? consumeTapEvents,
       draggable: draggableParam ?? draggable,
@@ -271,10 +285,20 @@ class Marker {
       }
     }
 
+    String appearAnimation;
+    switch(this.appearAnimation) {
+      case MarkerAnimation.pop:
+        appearAnimation = "pop";
+        break;
+      default:
+        appearAnimation = "none";
+    }
+
     addIfPresent('markerId', markerId.value);
     addIfPresent('alpha', alpha);
     addIfPresent('anchor', _offsetToJson(anchor));
     addIfPresent('consumeTapEvents', consumeTapEvents);
+    addIfPresent('animation', appearAnimation);
     addIfPresent('draggable', draggable);
     addIfPresent('flat', flat);
     addIfPresent('icon', icon?._toJson());
@@ -293,6 +317,7 @@ class Marker {
     final Marker typedOther = other;
     return markerId == typedOther.markerId &&
         alpha == typedOther.alpha &&
+        appearAnimation == typedOther.appearAnimation &&
         anchor == typedOther.anchor &&
         consumeTapEvents == typedOther.consumeTapEvents &&
         draggable == typedOther.draggable &&
@@ -310,7 +335,7 @@ class Marker {
 
   @override
   String toString() {
-    return 'Marker{markerId: $markerId, alpha: $alpha, anchor: $anchor, '
+    return 'Marker{markerId: $markerId, alpha: $alpha, appearAnimation: $appearAnimation anchor: $anchor, '
         'consumeTapEvents: $consumeTapEvents, draggable: $draggable, flat: $flat, '
         'icon: $icon, infoWindow: $infoWindow, position: $position, rotation: $rotation, '
         'visible: $visible, zIndex: $zIndex, onTap: $onTap}';
