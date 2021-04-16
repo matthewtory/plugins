@@ -1,6 +1,6 @@
-// Copyright 2017, the Flutter project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
+// Copyright 2013 The Flutter Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #import "FLTGoogleSignInPlugin.h"
 #import <GoogleSignIn/GoogleSignIn.h>
@@ -9,6 +9,8 @@
 // client id.  See https://developers.google.com/identity/sign-in/ios/start
 // for more info.
 static NSString *const kClientIdKey = @"CLIENT_ID";
+
+static NSString *const kServerClientIdKey = @"SERVER_CLIENT_ID";
 
 // These error codes must match with ones declared on Android and Dart sides.
 static NSString *const kErrorReasonSignInRequired = @"sign_in_required";
@@ -75,9 +77,22 @@ static FlutterError *getFlutterError(NSError *error) {
                                                        ofType:@"plist"];
       if (path) {
         NSMutableDictionary *plist = [[NSMutableDictionary alloc] initWithContentsOfFile:path];
-        [GIDSignIn sharedInstance].clientID = plist[kClientIdKey];
+        BOOL hasDynamicClientId =
+            [[call.arguments valueForKey:@"clientId"] isKindOfClass:[NSString class]];
+
+        if (hasDynamicClientId) {
+          [GIDSignIn sharedInstance].clientID = [call.arguments valueForKey:@"clientId"];
+        } else {
+          [GIDSignIn sharedInstance].clientID = plist[kClientIdKey];
+        }
+
+        [GIDSignIn sharedInstance].serverClientID = plist[kServerClientIdKey];
         [GIDSignIn sharedInstance].scopes = call.arguments[@"scopes"];
-        [GIDSignIn sharedInstance].hostedDomain = call.arguments[@"hostedDomain"];
+        if (call.arguments[@"hostedDomain"] == [NSNull null]) {
+          [GIDSignIn sharedInstance].hostedDomain = nil;
+        } else {
+          [GIDSignIn sharedInstance].hostedDomain = call.arguments[@"hostedDomain"];
+        }
         result(nil);
       } else {
         result([FlutterError errorWithCode:@"missing-config"
@@ -221,6 +236,7 @@ static FlutterError *getFlutterError(NSError *error) {
         @"email" : user.profile.email ?: [NSNull null],
         @"id" : user.userID ?: [NSNull null],
         @"photoUrl" : [photoUrl absoluteString] ?: [NSNull null],
+        @"serverAuthCode" : user.serverAuthCode ?: [NSNull null]
       }
                          error:nil];
     }
