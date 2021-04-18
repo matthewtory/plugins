@@ -107,6 +107,15 @@ class MarkerId extends MapsObjectId<Marker> {
   const MarkerId(String value) : super(value);
 }
 
+/// Determines how a [Marker] should animate when it is added to the [GoogleMap].
+enum MarkerAnimation {
+  /// No animation
+  none,
+
+  /// Pop animation
+  pop
+}
+
 /// Marks a geographical location on the map.
 ///
 /// A marker icon is drawn oriented against the device's screen rather than
@@ -137,6 +146,7 @@ class Marker implements MapsObject {
     required this.markerId,
     this.alpha = 1.0,
     this.anchor = const Offset(0.5, 1.0),
+    this.appearAnimation = MarkerAnimation.none,
     this.consumeTapEvents = false,
     this.draggable = false,
     this.flat = false,
@@ -197,6 +207,9 @@ class Marker implements MapsObject {
   /// True if the marker is visible.
   final bool visible;
 
+  /// The animation to use when the marker is added to the map.
+  final MarkerAnimation appearAnimation;
+
   /// The z-index of the marker, used to determine relative drawing order of
   /// map overlays.
   ///
@@ -215,6 +228,7 @@ class Marker implements MapsObject {
   Marker copyWith({
     double? alphaParam,
     Offset? anchorParam,
+    MarkerAnimation? appearAnimationParam,
     bool? consumeTapEventsParam,
     bool? draggableParam,
     bool? flatParam,
@@ -231,6 +245,7 @@ class Marker implements MapsObject {
       markerId: markerId,
       alpha: alphaParam ?? alpha,
       anchor: anchorParam ?? anchor,
+      appearAnimation: appearAnimationParam ?? appearAnimation,
       consumeTapEvents: consumeTapEventsParam ?? consumeTapEvents,
       draggable: draggableParam ?? draggable,
       flat: flatParam ?? flat,
@@ -258,9 +273,19 @@ class Marker implements MapsObject {
       }
     }
 
+    String appearAnimation;
+    switch (this.appearAnimation) {
+      case MarkerAnimation.pop:
+        appearAnimation = "pop";
+        break;
+      default:
+        appearAnimation = "none";
+    }
+
     addIfPresent('markerId', markerId.value);
     addIfPresent('alpha', alpha);
     addIfPresent('anchor', _offsetToJson(anchor));
+    addIfPresent('animation', appearAnimation);
     addIfPresent('consumeTapEvents', consumeTapEvents);
     addIfPresent('draggable', draggable);
     addIfPresent('flat', flat);
@@ -281,6 +306,7 @@ class Marker implements MapsObject {
     return markerId == typedOther.markerId &&
         alpha == typedOther.alpha &&
         anchor == typedOther.anchor &&
+        appearAnimation == typedOther.appearAnimation &&
         consumeTapEvents == typedOther.consumeTapEvents &&
         draggable == typedOther.draggable &&
         flat == typedOther.flat &&
@@ -297,7 +323,7 @@ class Marker implements MapsObject {
 
   @override
   String toString() {
-    return 'Marker{markerId: $markerId, alpha: $alpha, anchor: $anchor, '
+    return 'Marker{markerId: $markerId, alpha: $alpha, anchor: $anchor, appearAnimation: $appearAnimation '
         'consumeTapEvents: $consumeTapEvents, draggable: $draggable, flat: $flat, '
         'icon: $icon, infoWindow: $infoWindow, position: $position, rotation: $rotation, '
         'visible: $visible, zIndex: $zIndex, onTap: $onTap}';
